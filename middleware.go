@@ -17,7 +17,7 @@ type Chain struct{
 	middlewares []MiddleWare
 }
 
-func (c *Chain)New(raw http.Handler,ctx context.Context,middlewares ...MiddleWare) *Chain{
+func (c *Chain)New(raw http.Handler,middlewares ...MiddleWare) *Chain{
 	return &Chain{
 		final:raw,
 		middlewares:middlewares,
@@ -45,10 +45,10 @@ func (t *test3) Chain(base http.Handler) http.Handler {
 		io.WriteString(w,"test3\r\n")
 
 		if v := r.Context().Value("username"); v != nil {
-			io.WriteString(w, "123")
+			io.WriteString(w, v.(string)+"\r\n")
 		}
 		if t.name=="test3"{
-			io.WriteString(w, "struct")
+			io.WriteString(w, "struct\r\n")
 		}
 		base.ServeHTTP(w, r)
 	})
@@ -66,7 +66,7 @@ func (t *test4) Chain(base http.Handler) http.Handler {
 }
 
 func main(){
-	http.Handle("/test", new(Chain).New(http.HandlerFunc(Hello),context.Background()).Then(&test3{name:"test3"}).Then(new(test4)))
+	http.Handle("/test", new(Chain).New(http.HandlerFunc(Hello)).Then(&test3{name:"test3"}).Then(new(test4)))
 	http.Handle("/", http.HandlerFunc(Hello))
 	log.Fatal(http.ListenAndServe(":1234",nil))
 }
@@ -74,7 +74,7 @@ func main(){
 func Hello(w http.ResponseWriter, r *http.Request){
 
 	if v := r.Context().Value("username"); v != nil {
-		io.WriteString(w, "456")
+		io.WriteString(w, "456\r\n")
 	}
 	io.WriteString(w,"hello world")
 }
