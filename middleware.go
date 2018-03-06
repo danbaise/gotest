@@ -54,8 +54,7 @@ func (t *test3) Chain(base http.Handler) http.Handler {
 	})
 }
 
-type test4 struct {
-}
+type test4 struct {}
 
 func (t *test4) Chain(base http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -66,15 +65,22 @@ func (t *test4) Chain(base http.Handler) http.Handler {
 }
 
 func main(){
-	http.Handle("/test", new(Chain).New(http.HandlerFunc(Hello)).Then(&test3{name:"test3"}).Then(new(test4)))
+	http.Handle("/chain", new(Chain).New(http.HandlerFunc(Hello)).Then(&test3{name:"test3"}).Then(new(test4)))
 	http.Handle("/", http.HandlerFunc(Hello))
+	http.Handle("/test1", test1(http.HandlerFunc(Hello)))
 	log.Fatal(http.ListenAndServe(":1234",nil))
 }
 
 func Hello(w http.ResponseWriter, r *http.Request){
-
 	if v := r.Context().Value("username"); v != nil {
 		io.WriteString(w, "456\r\n")
 	}
 	io.WriteString(w,"hello world")
+}
+
+func test1(h http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+		io.WriteString(w,"simple middleware\r\n")
+		h.ServeHTTP(w,r)
+	})
 }
