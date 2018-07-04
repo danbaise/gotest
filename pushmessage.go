@@ -151,8 +151,6 @@ func run() {
 		func(s string) {
 			for _, v := range kw {
 				if strings.Index(s, v) != -1 {
-					w := md5.New()
-					io.WriteString(w, s) //将s写入到w中
 					var m string
 					str := []rune(s)
 					length := len(str)
@@ -161,6 +159,8 @@ func run() {
 					} else {
 						m = string(str[0: length])
 					}
+					w := md5.New()
+					io.WriteString(w, m) //将m写入到w中
 					pushMessage[hex.EncodeToString(w.Sum(nil))] = m
 				}
 			}
@@ -174,13 +174,19 @@ func run() {
 			beenSend[k] = struct{}{}
 		}
 	}
+
+	for k, _ := range pushMessage {
+		delete(pushMessage, k)
+	}
 }
 
 func checkMessage(v string) bool {
 	length := len(beenSend)
-	if length >= 100 {
+	if length >= 5000 {
 		for k, _ := range beenSend {
-			delete(beenSend, k)
+			if k != v {
+				delete(beenSend, k)
+			}
 		}
 	}
 	if _, ok := beenSend[v]; !ok {
