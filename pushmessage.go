@@ -11,6 +11,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"time"
+	"net/url"
 )
 
 var (
@@ -197,8 +198,8 @@ func checkMessage(v string) bool {
 
 }
 
-func postMessage(url, str string) {
-	resp, err := http.Get(url + "/" + str)
+func postMessage(httpUrl, str string) {
+	resp, err := http.Get(httpUrl + "/" + url.QueryEscape(str))
 	checkErr(err)
 	defer resp.Body.Close()
 }
