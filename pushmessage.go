@@ -75,7 +75,7 @@ var pushMessage map[string]string
 var bs beenSend
 
 const base_format = "2006-01-02 15:04:05"
-const queue_length = 30
+const queue_length = 600
 
 type beenSend struct {
 	count int
