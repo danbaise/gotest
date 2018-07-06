@@ -72,17 +72,49 @@ type wallstreetcnitem struct {
 
 var kw []string
 var pushMessage map[string]string
-var beenSend map[string]struct{}
+var bs beenSend
 
 const base_format = "2006-01-02 15:04:05"
+const queue_length = 30
+
+type beenSend struct {
+	count int
+	last  int
+	list  []string
+}
+
+func (b *beenSend) Add(str string) {
+	b.list[b.last] = str
+	b.last += 1
+	if b.last >= b.count {
+		b.last = 0
+	}
+}
+
+func (b *beenSend) IsExist(str string) bool {
+	for _, v := range b.list {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
 
 func init() {
 	pushMessage = make(map[string]string)
-	beenSend = make(map[string]struct{})
+	bs = beenSend{count: queue_length, last: 0, list: make([]string, queue_length)}
 }
 
 func main() {
 	aChan := make(chan int, 1)
+	keywordTask()
+	//定时提醒
+	onTimeTask()
+	//阻塞主线程
+	<-aChan
+}
+
+func keywordTask() {
 	ticker := time.NewTicker(time.Minute * 1)
 	go func() {
 		for {
@@ -92,10 +124,6 @@ func main() {
 			}
 		}
 	}()
-	//定时提醒
-	onTimeTask()
-	//阻塞主线程
-	<-aChan
 }
 
 func onTimeTask() {
@@ -169,33 +197,17 @@ func run() {
 	}
 
 	url := apiUrl + conf.Secret
+
 	for k, v := range pushMessage {
-		if checkMessage(k) == true {
+		if bs.IsExist(k) == false {
 			postMessage(url, v)
-			beenSend[k] = struct{}{}
+			bs.Add(v)
 		}
 	}
 
 	for k, _ := range pushMessage {
 		delete(pushMessage, k)
 	}
-}
-
-func checkMessage(v string) bool {
-	length := len(beenSend)
-	if length >= 5000 {
-		for k, _ := range beenSend {
-			if k != v {
-				delete(beenSend, k)
-			}
-		}
-	}
-	if _, ok := beenSend[v]; !ok {
-		return true
-	} else {
-		return false
-	}
-
 }
 
 func postMessage(httpUrl, str string) {
