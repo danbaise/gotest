@@ -201,7 +201,7 @@ func run() {
 	for k, v := range pushMessage {
 		if bs.IsExist(k) == false {
 			postMessage(url, v)
-			bs.Add(v)
+			bs.Add(k)
 		}
 	}
 
