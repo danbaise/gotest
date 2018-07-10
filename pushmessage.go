@@ -249,7 +249,7 @@ func getContent() []string {
 				}
 			default:
 			}
-			resp.Body.Close()
+			defer resp.Body.Close()
 			defer wg.Done()
 		}(k, v)
 	}
