@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/danbaise/gotest/reload"
+	"github.com/danbaise/gotest/reload/core"
 	"log"
 	"net"
 	"net/http"
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	sm     = reload.Smooth{}
+	sm     = core.Smooth{}
 	server = &http.Server{Addr: ":8899"}
 	over   chan bool
 )
