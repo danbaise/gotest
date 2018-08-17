@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"golang.org/x/net/context"
 	"log"
 	"net"
 	"net/http"
@@ -19,6 +20,8 @@ var (
 	listener net.Listener
 	graceful = flag.Bool("graceful", false, "listen on fd open 3 (internal use only)")
 )
+
+var cxt context.Context = context.Background()
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(20 * time.Second)
@@ -90,6 +93,7 @@ func signalHandler() {
 			if err != nil {
 				log.Fatalf("graceful restart error: %v", err)
 			}
+			server.Shutdown(cxt)
 			log.Printf("graceful reload")
 			return
 		}
