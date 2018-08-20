@@ -22,10 +22,9 @@ func main() {
 	http.HandleFunc("/hello", handler)
 	server := &http.Server{Addr: ADDRESS}
 
-	conf := &graceful.Conf{Server: server, Address: ADDRESS, Timeout: 20 * time.Second}
+	conf := &graceful.Conf{Server: server, Timeout: 20 * time.Second}
 	graceful.New(conf).Serve()
 }
-
 */
 
 import (
@@ -53,7 +52,6 @@ type Graceful struct {
 type Conf struct {
 	Server  *http.Server
 	Timeout time.Duration
-	Address string
 }
 
 func New(c *Conf) *Graceful {
@@ -80,7 +78,7 @@ func (g *Graceful) SetListener() error {
 		g.Listener, err = net.FileListener(f)
 	} else {
 		log.Print("main: Listening on a new file descriptor.")
-		g.Listener, err = net.Listen("tcp", g.Address)
+		g.Listener, err = net.Listen("tcp", g.Server.Addr)
 	}
 
 	if err != nil {
