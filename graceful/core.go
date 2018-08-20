@@ -1,5 +1,33 @@
 package graceful
 
+/*
+package main
+
+import (
+	"fmt"
+	"github.com/danbaise/gotest/graceful"
+	"net/http"
+	"os"
+	"time"
+)
+
+const ADDRESS = ":9999"
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(20 * time.Second)
+	w.Write([]byte("hello world233333!!!!"))
+}
+func main() {
+	fmt.Println("start PID", os.Getpid())
+	http.HandleFunc("/hello", handler)
+	server := &http.Server{Addr: ADDRESS}
+
+	conf := &graceful.Conf{Server: server, Address: ADDRESS, Timeout: 20 * time.Second}
+	graceful.New(conf).Serve()
+}
+
+*/
+
 import (
 	"errors"
 	"golang.org/x/net/context"
@@ -10,6 +38,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 const (
@@ -19,16 +48,18 @@ const (
 type Graceful struct {
 	*Conf
 	Listener net.Listener
-	Server   *http.Server
 }
 
 type Conf struct {
-	Cxt     context.Context
+	Server  *http.Server
+	Timeout time.Duration
 	Address string
 }
 
-func New() *Graceful {
-	return &Graceful{}
+func New(c *Conf) *Graceful {
+	g := &Graceful{}
+	g.Conf = c
+	return g
 }
 
 func (g *Graceful) Getenv(key string) string {
@@ -58,25 +89,24 @@ func (g *Graceful) SetListener() error {
 	return nil
 }
 
-func (g *Graceful) SetConfig(cxt context.Context, server *http.Server, address string) {
-	g.Conf = &Conf{Address: address, Cxt: cxt}
-	g.Server = server
-}
-
-func (g *Graceful) Run() {
+func (g *Graceful) Serve() {
 	g.SetListener()
-	go g.signalHandler()
+	go func() {
+		err := g.Server.Serve(g.Listener)
+		log.Printf("server.Serve err: %v\n", err)
+	}()
+	g.signalHandler()
 }
 
-func (g *Graceful) reload() (error, bool) {
+func (g *Graceful) reload() error {
 	tl, ok := g.Listener.(*net.TCPListener)
 	if !ok {
-		return errors.New("listener is not tcp listener"), false
+		return errors.New("listener is not tcp listener")
 	}
 
 	f, err := tl.File()
 	if err != nil {
-		return err, false
+		return err
 	}
 	g.SetENV()
 	args := os.Args[1:]
@@ -85,19 +115,7 @@ func (g *Graceful) reload() (error, bool) {
 	cmd.Stderr = os.Stderr
 	// put socket FD at the first entry
 	cmd.ExtraFiles = []*os.File{f}
-	err = cmd.Start()
-	if err != nil {
-		log.Fatalf("graceful restart error: %v", err)
-		return err, false
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		log.Fatalf("graceful restart error: %v", err)
-		return err, false
-	}
-
-	return nil, true
+	return cmd.Start()
 }
 
 func (g *Graceful) signalHandler() {
@@ -107,12 +125,12 @@ func (g *Graceful) signalHandler() {
 		switch <-ch {
 		case syscall.SIGUSR2:
 			// reload
-			err, ok := g.reload()
-			if !ok {
+			err := g.reload()
+			if err != nil {
 				log.Fatalf("graceful restart error: %v", err)
-				continue
 			}
-			g.Server.Shutdown(g.Cxt)
+			ctx, _ := context.WithTimeout(context.Background(), g.Timeout)
+			g.Server.Shutdown(ctx)
 			log.Printf("graceful reload")
 			return
 		}
