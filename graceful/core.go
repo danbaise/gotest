@@ -60,17 +60,9 @@ func New(c *Conf) *Graceful {
 	return g
 }
 
-func (g *Graceful) getenv(key string) string {
-	return os.Getenv(key)
-}
-
-func (g *Graceful) setENV() error {
-	return os.Setenv(ENV, "ON")
-}
-
 func (g *Graceful) SetListener() error {
 	var err error
-	if g.getenv(ENV) == "ON" {
+	if os.Getenv(ENV) == "ON" {
 		log.Print("main: Listening to existing file descriptor 3.")
 		// cmd.ExtraFiles: If non-nil, entry i becomes file descriptor 3+i.
 		// when we put socket FD at the first entry, it will always be 3(0+3)
@@ -106,7 +98,7 @@ func (g *Graceful) reload() error {
 	if err != nil {
 		return err
 	}
-	g.setENV()
+	os.Setenv(ENV, "ON")
 	args := os.Args[1:]
 	cmd := exec.Command(os.Args[0], args...)
 	cmd.Stdout = os.Stdout
