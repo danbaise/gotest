@@ -110,7 +110,7 @@ func (g *Graceful) reload() error {
 
 func (g *Graceful) signalHandler() {
 	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGUSR2)
+	signal.Notify(ch, syscall.SIGUSR2, syscall.SIGTERM)
 	for {
 		switch <-ch {
 		case syscall.SIGUSR2:
@@ -122,6 +122,10 @@ func (g *Graceful) signalHandler() {
 			ctx, _ := context.WithTimeout(context.Background(), g.Timeout)
 			g.Server.Shutdown(ctx)
 			log.Printf("graceful reload")
+			return
+		case syscall.SIGTERM:
+			g.Server.Shutdown(context.Background())
+			log.Printf("graceful stop")
 			return
 		}
 	}
