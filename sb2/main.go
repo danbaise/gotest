@@ -46,14 +46,7 @@ func main() {
 	mux.Handle("/", http.HandlerFunc(index))
 	mux.Handle("/tpl", http.HandlerFunc(tpl))
 	mux.HandleFunc("/text", text)
-
-	go func() {
-		http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			http.ServeFile(w, r, filepath.Dir(os.Args[0])+"/sbadmin2")
-		}))
-		http.ListenAndServe(":9090", nil)
-	}()
+	mux.Handle("/sbadmin2/", http.StripPrefix("/sbadmin2/", http.FileServer(http.Dir(filepath.Dir(os.Args[0])+"/sbadmin2"))))
 
 	http.ListenAndServe(":80", mux)
 }
