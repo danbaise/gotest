@@ -16,6 +16,12 @@ http://c.biancheng.net/cpp/html/2706.html
 3) 类型中增设tag数据成员，以区分是队满还是队空。tag等于0的情况下，若因删除导 致Q.front==Q.rear则为队空；tag等于1的情况下，若因插入导致Q.ftont==Q.rear则为队满。
 */
 
+/*
+应用场景
+延迟消息处理
+https://mp.weixin.qq.com/s?__biz=MjM5ODYxMDA5OQ==&mid=2651959961&idx=1&sn=afec02c8dc6db9445ce40821b5336736&chksm=bd2d07458a5a8e5314560620c240b1c4cf3bbf801fc0ab524bd5e8aa8b8ef036cf755d7eb0f6&mpshare=1&scene=23&srcid=0317pp8XWI0iglZhO4SrF4Ia#rd
+*/
+
 const MaxSize = 5
 
 type queue struct {
