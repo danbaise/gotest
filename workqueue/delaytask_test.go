@@ -27,7 +27,7 @@ func (d *delayTaskTest) Do() {
 
 func TestDelayTask(t *testing.T) {
 	fmt.Println("TestDelayTask")
-	delay := NewDelayTask(120).Start()
+	delay := NewDelayTask(60).Start()
 
 	for i := 0; i < 5000; i++ {
 		num := rand.Int31n(124) + int32(1)

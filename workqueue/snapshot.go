@@ -27,7 +27,7 @@ func NewSnapshot() *snapshot {
 	}
 }
 
-func (s *snapshot) Run() *snapshot {
+func (s *snapshot) Run(e interface{}) *snapshot {
 	go func() {
 		interval := time.Second
 		ticker := time.NewTicker(interval)
@@ -44,7 +44,7 @@ func (s *snapshot) Run() *snapshot {
 				func() {
 					buf.Reset()
 					enc := gob.NewEncoder(&buf)
-					err := enc.Encode("")
+					err := enc.Encode(e)
 					if err != nil {
 						log.Println(err)
 					}
@@ -53,7 +53,6 @@ func (s *snapshot) Run() *snapshot {
 					f.Write(buf.Bytes())
 					f.Sync()
 
-					//todo
 					fmt.Println("once save")
 				}()
 			case <-s.exitChan:

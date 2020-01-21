@@ -27,11 +27,7 @@ type task struct {
 	uuid    interface{}
 	mu      sync.Mutex
 	runTime int64 //运行时间
-	job     Jober
-}
-
-func (t *task) Do() {
-	t.job.Do()
+	Jober
 }
 
 func (t *task) GetRunTime() int64 {
@@ -78,7 +74,7 @@ func (d *delayTask) Save(uuid interface{}, job Jober, t uint) error {
 	rt := curTime + int64(t)
 	insertInx := rt % int64(d.circleSize)
 
-	d.data[insertInx].Store(uuid, &task{uuid: uuid, runTime: rt, job: job})
+	d.data[insertInx].Store(uuid, &task{uuid: uuid, runTime: rt, Jober: job})
 	return nil
 }
 
