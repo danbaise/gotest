@@ -5,6 +5,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"sync/atomic"
 	"testing"
@@ -13,19 +14,19 @@ import (
 
 var successCount uint64
 
-type User struct {
+type WorkqueueTest struct {
 	Username string
 	Password string
 }
 
-func (u *User) Processing() {
+func (w *WorkqueueTest) Do() {
 	x := rand.Intn(2)
 	time.Sleep(time.Duration(x) * time.Second)
 	atomic.AddUint64(&successCount, 1)
 }
 
-func TestExample(t *testing.T) {
-
+func TestWorkqueue(t *testing.T) {
+	fmt.Println("TestWorkqueue")
 	config := &Config{
 		MinWork:              2,
 		MaxWork:              10,
@@ -69,7 +70,7 @@ func TestExample(t *testing.T) {
 
 	var errcount uint64
 	for i := 0; i < 2000; i++ {
-		err := wq.Put(&User{Username: "testusername", Password: "testpassword"}, 2*time.Second)
+		err := wq.Put(&WorkqueueTest{Username: "testusername", Password: "testpassword"}, 2*time.Second)
 		if err != nil {
 			errcount++
 		}

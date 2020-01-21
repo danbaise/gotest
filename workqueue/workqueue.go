@@ -18,7 +18,7 @@ var (
 )
 
 type Jober interface {
-	Processing()
+	Do()
 }
 
 type Config struct {
@@ -126,7 +126,7 @@ func (wq *Workqueue) work() {
 				defer func() {
 					atomic.AddUint64(&wq.processingNum, ^uint64(0))
 				}()
-				job.Processing()
+				job.Do()
 			}()
 		case <-time.After(wq.cfg.WorkIdleTime):
 			if wq.checkMinWork() {
