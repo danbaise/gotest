@@ -33,7 +33,7 @@ func getIP() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	defer req.Body.Close()
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		log.Fatal(err)
